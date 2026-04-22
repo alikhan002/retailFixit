@@ -64,6 +64,8 @@ function JobDetailPage() {
   const { jobId } = Route.useParams()
   const id = Number(jobId)
   const { data: job, isLoading, isError, refetch } = useJobDetailQuery(id)
+  const { currentUser } = useSessionStore()
+  const canAssignRole = currentUser.role === 'dispatcher' || currentUser.role === 'admin'
 
   if (isLoading) {
     return (
@@ -108,8 +110,6 @@ function JobDetailPage() {
   }
 
   const canAssign = job.status === 'pending' || job.status === 'assigned'
-  const { currentUser } = useSessionStore()
-  const canAssignRole = currentUser.role === 'dispatcher' || currentUser.role === 'admin'
 
   return (
     <main className="page-wrap px-4 pb-12 pt-8">
