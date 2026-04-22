@@ -19,7 +19,8 @@ type JobsStore = {
   closeAssignModal: () => void
   // Stale update banner
   staleJobIds: Set<number>
-  markJobStale: (jobId: number) => void
+  staleJobDetails: Map<number, { jobTitle?: string; vendorName?: string }>
+  markJobStale: (jobId: number, detail?: { jobTitle?: string; vendorName?: string }) => void
   clearStaleJob: (jobId: number) => void
   // Keyboard shortcuts help modal
   shortcutsOpen: boolean
@@ -51,13 +52,19 @@ export const useJobsStore = create<JobsStore>((set) => ({
   closeAssignModal: () => set({ assignModalJobId: null }),
 
   staleJobIds: new Set(),
-  markJobStale: (jobId) =>
-    set((s) => ({ staleJobIds: new Set([...s.staleJobIds, jobId]) })),
+  staleJobDetails: new Map(),
+  markJobStale: (jobId, detail) =>
+    set((s) => ({
+      staleJobIds: new Set([...s.staleJobIds, jobId]),
+      staleJobDetails: new Map([...s.staleJobDetails, [jobId, detail ?? {}]]),
+    })),
   clearStaleJob: (jobId) =>
     set((s) => {
-      const next = new Set(s.staleJobIds)
-      next.delete(jobId)
-      return { staleJobIds: next }
+      const nextIds = new Set(s.staleJobIds)
+      nextIds.delete(jobId)
+      const nextDetails = new Map(s.staleJobDetails)
+      nextDetails.delete(jobId)
+      return { staleJobIds: nextIds, staleJobDetails: nextDetails }
     }),
 
   shortcutsOpen: false,

@@ -147,6 +147,9 @@ export const getAiRecommendation = createServerFn({ method: 'GET' })
     // Simulate AI latency (1.5–2.5s)
     await new Promise((r) => setTimeout(r, 1500 + Math.random() * 1000))
 
+    // Job 1 has AI recommendations disabled
+    if (data.jobId === 1) return null
+
     const rec = MOCK_AI_RECOMMENDATIONS[data.jobId]
     if (!rec) return null
 

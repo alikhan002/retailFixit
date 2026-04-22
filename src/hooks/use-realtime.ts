@@ -1,32 +1,59 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useJobsStore } from '#/stores/jobs-store'
 
-/**
- * Simulates SSE real-time job updates.
- * In production, replace the setInterval with an EventSource connection.
- */
+const CHANNEL_NAME = 'job-updates'
+
+type JobUpdateMessage = {
+  type: 'job.updated'
+  jobId: number
+  jobTitle?: string
+  vendorName?: string
+}
+
 export function useRealtimeJobs() {
   const qc = useQueryClient()
   const { markJobStale } = useJobsStore()
-  const tickRef = useRef(0)
 
   useEffect(() => {
-    // Simulate a job status update every 15 seconds
-    const interval = setInterval(() => {
-      tickRef.current += 1
+    const channel = new BroadcastChannel(CHANNEL_NAME)
 
-      // Alternate between job 1 and job 3 for demo purposes
-      const jobId = tickRef.current % 2 === 0 ? 1 : 3
+    // ── Receive updates from other tabs ──────────────────────────────────────
+    channel.onmessage = (event: MessageEvent<JobUpdateMessage>) => {
+      const { type, jobId, jobTitle, vendorName } = event.data
+      if (type !== 'job.updated' || !jobId) return
 
-      // Notify the user non-intrusively if they might have a form open
-      markJobStale(jobId)
-
-      // Invalidate query cache — UI updates automatically
+      markJobStale(jobId, { jobTitle, vendorName })
       qc.invalidateQueries({ queryKey: ['job', jobId] })
       qc.invalidateQueries({ queryKey: ['jobs'] })
-    }, 15_000)
+    }
 
-    return () => clearInterval(interval)
+    // ── Broadcast when THIS tab completes a mutation ──────────────────────────
+    const unsubscribeMutations = qc.getMutationCache().subscribe((event) => {
+      if (event.mutation?.state.status !== 'success') return
+
+      const vars = event.mutation.state.variables as Record<string, unknown> | undefined
+      const jobId = vars?.jobId as number | undefined
+      if (!jobId) return
+
+      // Pull assignment detail from the mutation result if available
+      const result = event.mutation.state.data as Record<string, unknown> | undefined
+      const jobTitle = result?.title as string | undefined
+      const vendorName = (result?.assignedVendor as Record<string, unknown> | undefined)
+        ?.name as string | undefined
+
+      // Invalidate locally (same tab)
+      markJobStale(jobId, { jobTitle, vendorName })
+      qc.invalidateQueries({ queryKey: ['job', jobId] })
+      qc.invalidateQueries({ queryKey: ['jobs'] })
+
+      // Notify all other tabs
+      channel.postMessage({ type: 'job.updated', jobId, jobTitle, vendorName } satisfies JobUpdateMessage)
+    })
+
+    return () => {
+      unsubscribeMutations()
+      channel.close()
+    }
   }, [qc, markJobStale])
 }

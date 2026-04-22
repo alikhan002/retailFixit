@@ -9,6 +9,7 @@ import { KeyboardShortcutsModal } from '../components/KeyboardShortcutsModal'
 import { queryClient } from '../lib/query-client'
 import { useJobsStore } from '../stores/jobs-store'
 import { useKeyboardShortcut, useKeySequence } from '../hooks/use-keyboard-shortcuts'
+import { useRealtimeJobs } from '../hooks/use-realtime'
 
 import appCss from '../styles.css?url'
 
@@ -36,6 +37,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
         <QueryClientProvider client={queryClient}>
           <GlobalShortcuts />
+          <RealtimeSync />
           <Header />
           {children}
           <Footer />
@@ -66,5 +68,10 @@ function GlobalShortcuts() {
   // g j — go to jobs dashboard
   useKeySequence('g', 'j', () => router.navigate({ to: '/jobs' }))
 
+  return null
+}
+
+function RealtimeSync() {
+  useRealtimeJobs()
   return null
 }

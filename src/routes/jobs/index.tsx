@@ -6,7 +6,6 @@ import { JobCardSkeleton } from '#/components/ui/Skeleton'
 import { Button } from '#/components/ui/Button'
 import { useJobsQuery } from '#/hooks/use-jobs-query'
 import { useJobsStore } from '#/stores/jobs-store'
-import { useRealtimeJobs } from '#/hooks/use-realtime'
 import { useKeyboardShortcut } from '#/hooks/use-keyboard-shortcuts'
 
 export const Route = createFileRoute('/jobs/')({
@@ -16,29 +15,38 @@ export const Route = createFileRoute('/jobs/')({
 
 function RealtimeBanner() {
   const staleJobIds = useJobsStore((s) => s.staleJobIds)
+  const staleJobDetails = useJobsStore((s) => s.staleJobDetails)
   const clearStaleJob = useJobsStore((s) => s.clearStaleJob)
 
   if (staleJobIds.size === 0) return null
+
+  const entries = [...staleJobIds].map((id) => ({ id, ...staleJobDetails.get(id) }))
 
   return (
     <div
       role="status"
       aria-live="polite"
-      className="flex items-center justify-between gap-3 rounded-xl border border-[rgba(79,184,178,0.3)] bg-[rgba(79,184,178,0.08)] px-4 py-2.5 text-sm text-[var(--lagoon-deep)]"
+      className="mb-4 space-y-1.5 rounded-xl border border-[rgba(79,184,178,0.3)] bg-[rgba(79,184,178,0.08)] px-4 py-3 text-sm text-[var(--lagoon-deep)]"
     >
-      <span className="flex items-center gap-2">
-        <RefreshCw size={13} aria-hidden="true" />
-        {staleJobIds.size === 1
-          ? 'A job was updated in real-time.'
-          : `${staleJobIds.size} jobs were updated in real-time.`}
-      </span>
-      <button
-        onClick={() => staleJobIds.forEach((id) => clearStaleJob(id))}
-        className="text-xs font-semibold underline hover:no-underline"
-        aria-label="Dismiss real-time update notification"
-      >
-        Dismiss
-      </button>
+      {entries.map(({ id, jobTitle, vendorName }) => (
+        <div key={id} className="flex items-center justify-between gap-3">
+          <span className="flex items-center gap-2">
+            <RefreshCw size={13} aria-hidden="true" />
+            {jobTitle && vendorName
+              ? <><strong>{jobTitle}</strong> was assigned to <strong>{vendorName}</strong></>
+              : jobTitle
+                ? <><strong>{jobTitle}</strong> was updated</>
+                : `Job #${id} was updated`}
+          </span>
+          <button
+            onClick={() => clearStaleJob(id)}
+            className="shrink-0 text-xs font-semibold underline hover:no-underline"
+            aria-label={`Dismiss update for job ${id}`}
+          >
+            Dismiss
+          </button>
+        </div>
+      ))}
     </div>
   )
 }
@@ -130,7 +138,6 @@ function EmptyState() {
 }
 
 function JobDashboard() {
-  useRealtimeJobs()
   const { data, isLoading, isError, refetch, isFetching } = useJobsQuery()
   const filters = useJobsStore((s) => s.filters)
   const { setFilter, resetFilters } = useJobsStore()
