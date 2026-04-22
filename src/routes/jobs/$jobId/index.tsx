@@ -6,6 +6,7 @@ import { AssignmentWorkflow } from '#/components/jobs/AssignmentWorkflow'
 import { JobDetailSkeleton } from '#/components/ui/Skeleton'
 import { useJobDetailQuery } from '#/hooks/use-jobs-query'
 import { useJobsStore } from '#/stores/jobs-store'
+import { useSessionStore } from '#/stores/session-store'
 
 export const Route = createFileRoute('/jobs/$jobId/')({
   component: JobDetailPage,
@@ -107,6 +108,8 @@ function JobDetailPage() {
   }
 
   const canAssign = job.status === 'pending' || job.status === 'assigned'
+  const { currentUser } = useSessionStore()
+  const canAssignRole = currentUser.role === 'dispatcher' || currentUser.role === 'admin'
 
   return (
     <main className="page-wrap px-4 pb-12 pt-8">
@@ -178,7 +181,7 @@ function JobDetailPage() {
 
         {/* Right: assignment */}
         <div className="space-y-4">
-          {canAssign && (
+          {canAssign && canAssignRole && (
             <div className="island-shell rounded-2xl p-6">
               <h3 className="m-0 mb-4 text-base font-semibold text-[var(--sea-ink)]">
                 Vendor Assignment

@@ -12,7 +12,7 @@ const config = defineConfig({
     tailwindcss(), 
     tanstackStart(), 
     viteReact(),
-    nitro() // <-- Add this to the array
+    nitro() 
   ],
 })
 

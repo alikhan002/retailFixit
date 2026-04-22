@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import ThemeToggle from './ThemeToggle'
+import { RoleSwitcher } from './RoleSwitcher'
 
 export default function Header() {
   return (
@@ -40,6 +41,7 @@ export default function Header() {
         </div>
 
         <div className="ml-auto flex items-center gap-1.5 sm:ml-0 sm:gap-2">
+          <RoleSwitcher />
           <ThemeToggle />
         </div>
       </nav>
