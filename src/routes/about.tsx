@@ -13,9 +13,7 @@ function About() {
           A small starter with room to grow.
         </h1>
         <p className="m-0 max-w-3xl text-base leading-8 text-[var(--sea-ink-soft)]">
-          TanStack Start gives you type-safe routing, server functions, and
-          modern SSR defaults. Use this as a clean foundation, then layer in
-          your own routes, styling, and add-ons.
+          At Retail Fix It, we excel by focusing on cost savings, delivering top-tier quality, meeting deadlines with precision, and maintaining clear communication with our clients. Together, these four pillars build our reputation for reliability and value—key drivers in turning customers into long-term partners.
         </p>
       </section>
     </main>

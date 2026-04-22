@@ -1,8 +1,11 @@
 import { Link } from '@tanstack/react-router'
 import ThemeToggle from './ThemeToggle'
 import { RoleSwitcher } from './RoleSwitcher'
+import { useJobsStore } from '#/stores/jobs-store'
 
 export default function Header() {
+  const openShortcuts = useJobsStore((s) => s.openShortcuts)
+
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--header-bg)] px-4 backdrop-blur-lg">
       <nav
@@ -43,6 +46,14 @@ export default function Header() {
         <div className="ml-auto flex items-center gap-1.5 sm:ml-0 sm:gap-2">
           <RoleSwitcher />
           <ThemeToggle />
+          <button
+            onClick={openShortcuts}
+            className="rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-2.5 py-1.5 font-mono text-xs font-semibold text-[var(--sea-ink-soft)] hover:text-[var(--sea-ink)] transition-colors"
+            aria-label="Show keyboard shortcuts"
+            title="Keyboard shortcuts (?)"
+          >
+            ?
+          </button>
         </div>
       </nav>
     </header>

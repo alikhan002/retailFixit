@@ -2,9 +2,13 @@ import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { QueryClientProvider } from '@tanstack/react-query'
+import { useRouter } from '@tanstack/react-router'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
+import { KeyboardShortcutsModal } from '../components/KeyboardShortcutsModal'
 import { queryClient } from '../lib/query-client'
+import { useJobsStore } from '../stores/jobs-store'
+import { useKeyboardShortcut, useKeySequence } from '../hooks/use-keyboard-shortcuts'
 
 import appCss from '../styles.css?url'
 
@@ -31,9 +35,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
         <QueryClientProvider client={queryClient}>
+          <GlobalShortcuts />
           <Header />
           {children}
           <Footer />
+          <KeyboardShortcutsModal />
           <TanStackDevtools
             config={{ position: 'bottom-right' }}
             plugins={[{ name: 'Tanstack Router', render: <TanStackRouterDevtoolsPanel /> }]}
@@ -43,4 +49,22 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </body>
     </html>
   )
+}
+
+function GlobalShortcuts() {
+  const router = useRouter()
+  const openShortcuts = useJobsStore((s) => s.openShortcuts)
+  const shortcutsOpen = useJobsStore((s) => s.shortcutsOpen)
+  const closeShortcuts = useJobsStore((s) => s.closeShortcuts)
+
+  // ? — toggle shortcuts help
+  useKeyboardShortcut('?', (e) => {
+    e.preventDefault()
+    shortcutsOpen ? closeShortcuts() : openShortcuts()
+  }, { shift: true })
+
+  // g j — go to jobs dashboard
+  useKeySequence('g', 'j', () => router.navigate({ to: '/jobs' }))
+
+  return null
 }

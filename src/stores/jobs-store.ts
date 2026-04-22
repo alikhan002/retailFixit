@@ -21,6 +21,10 @@ type JobsStore = {
   staleJobIds: Set<number>
   markJobStale: (jobId: number) => void
   clearStaleJob: (jobId: number) => void
+  // Keyboard shortcuts help modal
+  shortcutsOpen: boolean
+  openShortcuts: () => void
+  closeShortcuts: () => void
 }
 
 const DEFAULT_FILTERS: JobFilters = {
@@ -55,4 +59,8 @@ export const useJobsStore = create<JobsStore>((set) => ({
       next.delete(jobId)
       return { staleJobIds: next }
     }),
+
+  shortcutsOpen: false,
+  openShortcuts: () => set({ shortcutsOpen: true }),
+  closeShortcuts: () => set({ shortcutsOpen: false }),
 }))

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { MOCK_USERS, useSessionStore } from '#/stores/session-store'
 
 const ROLE_LABELS: Record<string, string> = {
@@ -9,17 +10,21 @@ const ROLE_LABELS: Record<string, string> = {
 
 export function RoleSwitcher() {
   const { currentUser, setUser } = useSessionStore()
+  // Avoid SSR/client hydration mismatch — localStorage is only available on the client
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      <span className="text-[var(--text-muted)] hidden sm:inline">Role:</span>
+      <span className="hidden sm:inline text-[var(--sea-ink-soft)]">Role:</span>
       <select
-        value={currentUser.id}
+        value={mounted ? currentUser.id : MOCK_USERS[0].id}
+        suppressHydrationWarning
         onChange={(e) => {
           const user = MOCK_USERS.find((u) => u.id === Number(e.target.value))
           if (user) setUser(user)
         }}
-        className="rounded-md border border-[var(--border)] bg-[var(--surface-raised)] px-2 py-1 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--lagoon)] cursor-pointer"
+        className="rounded-md border border-[var(--line)] bg-[var(--chip-bg)] px-2 py-1 text-sm text-[var(--sea-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--lagoon)] cursor-pointer"
         aria-label="Switch role"
       >
         {MOCK_USERS.map((u) => (

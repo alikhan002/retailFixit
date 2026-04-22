@@ -7,6 +7,7 @@ import { Button } from '#/components/ui/Button'
 import { useJobsQuery } from '#/hooks/use-jobs-query'
 import { useJobsStore } from '#/stores/jobs-store'
 import { useRealtimeJobs } from '#/hooks/use-realtime'
+import { useKeyboardShortcut } from '#/hooks/use-keyboard-shortcuts'
 
 export const Route = createFileRoute('/jobs/')({
   component: JobDashboard,
@@ -132,6 +133,28 @@ function JobDashboard() {
   useRealtimeJobs()
   const { data, isLoading, isError, refetch, isFetching } = useJobsQuery()
   const filters = useJobsStore((s) => s.filters)
+  const { setFilter, resetFilters } = useJobsStore()
+
+  // r — refresh
+  useKeyboardShortcut('r', () => refetch())
+  // f — clear filters
+  useKeyboardShortcut('f', () => resetFilters())
+  // / — focus status filter
+  useKeyboardShortcut('/', (e) => {
+    e.preventDefault()
+    const el = document.querySelector<HTMLSelectElement>('[aria-label="Filter by status"]')
+    el?.focus()
+  })
+  // n — next page
+  useKeyboardShortcut('n', () => {
+    if (!data) return
+    const totalPages = Math.ceil(data.total / data.pageSize)
+    if (filters.page < totalPages) setFilter('page', filters.page + 1)
+  })
+  // p — previous page
+  useKeyboardShortcut('p', () => {
+    if (filters.page > 1) setFilter('page', filters.page - 1)
+  })
 
   return (
     <main className="page-wrap px-4 pb-12 pt-8">

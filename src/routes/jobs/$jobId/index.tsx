@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { ArrowLeft, AlertCircle, MapPin, User, Phone, Mail, Calendar } from 'lucide-react'
 import { JobStatusBadge, JobPriorityBadge } from '#/components/jobs/JobStatusBadge'
 import { JobTimeline } from '#/components/jobs/JobTimeline'
@@ -7,6 +7,7 @@ import { JobDetailSkeleton } from '#/components/ui/Skeleton'
 import { useJobDetailQuery } from '#/hooks/use-jobs-query'
 import { useJobsStore } from '#/stores/jobs-store'
 import { useSessionStore } from '#/stores/session-store'
+import { useKeyboardShortcut } from '#/hooks/use-keyboard-shortcuts'
 
 export const Route = createFileRoute('/jobs/$jobId/')({
   component: JobDetailPage,
@@ -66,6 +67,22 @@ function JobDetailPage() {
   const { data: job, isLoading, isError, refetch } = useJobDetailQuery(id)
   const { currentUser } = useSessionStore()
   const canAssignRole = currentUser.role === 'dispatcher' || currentUser.role === 'admin'
+  const router = useRouter()
+
+  // b — back to dashboard
+  useKeyboardShortcut('b', () => router.navigate({ to: '/jobs' }))
+  // a — focus vendor assignment select
+  useKeyboardShortcut('a', (e) => {
+    e.preventDefault()
+    const el = document.querySelector<HTMLSelectElement>('#vendor-select')
+    el?.focus()
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
+  // t — scroll to timeline
+  useKeyboardShortcut('t', () => {
+    const el = document.querySelector<HTMLElement>('[data-timeline]')
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
 
   if (isLoading) {
     return (
@@ -172,7 +189,7 @@ function JobDetailPage() {
 
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
         {/* Left: timeline */}
-        <div className="island-shell rounded-2xl p-6">
+        <div className="island-shell rounded-2xl p-6" data-timeline>
           <h3 className="m-0 mb-4 text-base font-semibold text-[var(--sea-ink)]">
             Activity Timeline
           </h3>
