@@ -4,6 +4,8 @@ export type JobFilters = {
   status: string
   priority: string
   vendorId: number | undefined
+  dateFrom: string | undefined
+  dateTo: string | undefined
   page: number
 }
 
@@ -25,6 +27,8 @@ const DEFAULT_FILTERS: JobFilters = {
   status: 'all',
   priority: 'all',
   vendorId: undefined,
+  dateFrom: undefined,
+  dateTo: undefined,
   page: 1,
 }
 

@@ -22,12 +22,19 @@ const PRIORITY_OPTIONS = [
 const selectClass =
   'rounded-xl border border-[var(--line)] bg-[var(--chip-bg)] px-3 py-2 text-sm text-[var(--sea-ink)] focus:outline-2 focus:outline-[var(--lagoon)] cursor-pointer'
 
+const inputClass =
+  'rounded-xl border border-[var(--line)] bg-[var(--chip-bg)] px-3 py-2 text-sm text-[var(--sea-ink)] focus:outline-2 focus:outline-[var(--lagoon)]'
+
 export function JobFilters() {
   const { filters, setFilter, resetFilters } = useJobsStore()
   const { data: vendors } = useVendorsQuery()
 
   const hasActiveFilters =
-    filters.status !== 'all' || filters.priority !== 'all' || filters.vendorId !== undefined
+    filters.status !== 'all' ||
+    filters.priority !== 'all' ||
+    filters.vendorId !== undefined ||
+    filters.dateFrom !== undefined ||
+    filters.dateTo !== undefined
 
   return (
     <div
@@ -78,6 +85,33 @@ export function JobFilters() {
           ))}
         </select>
       )}
+
+      {hasActiveFilters && (
+        <Button variant="ghost" size="sm" onClick={resetFilters} aria-label="Clear all filters">
+          Clear filters
+        </Button>
+      )}
+
+      <div className="flex items-center gap-1.5">
+        <input
+          type="date"
+          aria-label="Filter from date"
+          value={filters.dateFrom ?? ''}
+          onChange={(e) => setFilter('dateFrom', e.target.value || undefined)}
+          className={inputClass}
+          title="From date"
+        />
+        <span className="text-xs text-[var(--sea-ink-soft)]">–</span>
+        <input
+          type="date"
+          aria-label="Filter to date"
+          value={filters.dateTo ?? ''}
+          min={filters.dateFrom}
+          onChange={(e) => setFilter('dateTo', e.target.value || undefined)}
+          className={inputClass}
+          title="To date"
+        />
+      </div>
 
       {hasActiveFilters && (
         <Button variant="ghost" size="sm" onClick={resetFilters} aria-label="Clear all filters">

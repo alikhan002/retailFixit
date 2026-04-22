@@ -30,6 +30,8 @@ export const getJobs = createServerFn({ method: 'GET' })
       status: z.string().optional(),
       priority: z.string().optional(),
       vendorId: z.number().optional(),
+      dateFrom: z.string().optional(),
+      dateTo: z.string().optional(),
       page: z.number().default(1),
       pageSize: z.number().default(10),
     }),
@@ -47,6 +49,15 @@ export const getJobs = createServerFn({ method: 'GET' })
     }
     if (data.vendorId) {
       filtered = filtered.filter((j) => j.assignedVendorId === data.vendorId)
+    }
+    if (data.dateFrom) {
+      const from = new Date(data.dateFrom)
+      filtered = filtered.filter((j) => new Date(j.createdAt) >= from)
+    }
+    if (data.dateTo) {
+      const to = new Date(data.dateTo)
+      to.setHours(23, 59, 59, 999)
+      filtered = filtered.filter((j) => new Date(j.createdAt) <= to)
     }
 
     const total = filtered.length

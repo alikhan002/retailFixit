@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { RefreshCw, AlertCircle, Briefcase } from 'lucide-react'
+import { RefreshCw, AlertCircle, Briefcase, FilterX } from 'lucide-react'
 import { JobCard } from '#/components/jobs/JobCard'
 import { JobFilters } from '#/components/jobs/JobFilters'
 import { JobCardSkeleton } from '#/components/ui/Skeleton'
@@ -82,6 +82,52 @@ function Pagination({
   )
 }
 
+function EmptyState() {
+  const { filters, resetFilters } = useJobsStore()
+  const hasFilters =
+    filters.status !== 'all' ||
+    filters.priority !== 'all' ||
+    filters.vendorId !== undefined ||
+    filters.dateFrom !== undefined ||
+    filters.dateTo !== undefined
+
+  if (hasFilters) {
+    return (
+      <div
+        role="status"
+        className="island-shell mt-4 flex flex-col items-center gap-3 rounded-2xl p-10 text-center"
+      >
+        <FilterX size={32} className="text-[var(--sea-ink-soft)]" aria-hidden="true" />
+        <p className="m-0 font-semibold text-[var(--sea-ink)]">No jobs match your filters</p>
+        <p className="m-0 text-sm text-[var(--sea-ink-soft)]">
+          {filters.status !== 'all'
+            ? `There are no ${filters.status.replace('_', ' ')} jobs`
+            : filters.priority !== 'all'
+              ? `There are no ${filters.priority} priority jobs`
+              : 'No jobs match the selected criteria'}
+          {(filters.dateFrom || filters.dateTo) ? ' in the selected date range' : ''}.
+        </p>
+        <Button variant="ghost" size="sm" onClick={resetFilters}>
+          Clear filters
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      role="status"
+      className="island-shell mt-4 flex flex-col items-center gap-3 rounded-2xl p-10 text-center"
+    >
+      <Briefcase size={32} className="text-[var(--sea-ink-soft)]" aria-hidden="true" />
+      <p className="m-0 font-semibold text-[var(--sea-ink)]">No jobs yet</p>
+      <p className="m-0 text-sm text-[var(--sea-ink-soft)]">
+        New jobs will appear here as they come in. Check back soon.
+      </p>
+    </div>
+  )
+}
+
 function JobDashboard() {
   useRealtimeJobs()
   const { data, isLoading, isError, refetch, isFetching } = useJobsQuery()
@@ -156,16 +202,7 @@ function JobDashboard() {
       {!isLoading && !isError && data && (
         <>
           {data.jobs.length === 0 ? (
-            <div
-              role="status"
-              className="island-shell mt-4 flex flex-col items-center gap-3 rounded-2xl p-10 text-center"
-            >
-              <Briefcase size={32} className="text-[var(--sea-ink-soft)]" aria-hidden="true" />
-              <p className="m-0 font-semibold text-[var(--sea-ink)]">No jobs found</p>
-              <p className="m-0 text-sm text-[var(--sea-ink-soft)]">
-                Try adjusting your filters or check back later.
-              </p>
-            </div>
+            <EmptyState />
           ) : (
             <>
               <p className="mb-3 mt-4 text-sm text-[var(--sea-ink-soft)]">

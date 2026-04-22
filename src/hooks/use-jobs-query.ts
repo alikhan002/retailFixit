@@ -12,6 +12,8 @@ export function useJobsQuery() {
           status: filters.status,
           priority: filters.priority,
           vendorId: filters.vendorId,
+          dateFrom: filters.dateFrom,
+          dateTo: filters.dateTo,
           page: filters.page,
           pageSize: 10,
         },
