@@ -1,5 +1,6 @@
 import { useJobsStore } from '#/stores/jobs-store'
 import { useVendorsQuery } from '#/hooks/use-jobs-query'
+import { useSessionStore } from '#/stores/session-store'
 import { Button } from '#/components/ui/Button'
 
 const STATUS_OPTIONS = [
@@ -28,6 +29,8 @@ const inputClass =
 export function JobFilters() {
   const { filters, setFilter, resetFilters } = useJobsStore()
   const { data: vendors } = useVendorsQuery()
+  const currentUser = useSessionStore((s) => s.currentUser)
+  const isVendorManager = currentUser.role === 'vendor_manager'
 
   const hasActiveFilters =
     filters.status !== 'all' ||
@@ -68,7 +71,8 @@ export function JobFilters() {
         ))}
       </select>
 
-      {vendors && vendors.length > 0 && (
+      {/* Vendor filter hidden for vendor managers — their scope is fixed */}
+      {!isVendorManager && vendors && vendors.length > 0 && (
         <select
           aria-label="Filter by vendor"
           value={filters.vendorId ?? ''}

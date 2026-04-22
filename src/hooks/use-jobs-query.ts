@@ -1,11 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getJobs, getJobById, getVendors, assignJob, getAiRecommendation, logAiOverride } from '#/lib/server-fns'
 import { useJobsStore } from '#/stores/jobs-store'
+import { useSessionStore } from '#/stores/session-store'
 
 export function useJobsQuery() {
   const filters = useJobsStore((s) => s.filters)
+  const currentUser = useSessionStore((s) => s.currentUser)
+
+  // Vendor managers are scoped to their own vendor — enforced server-side
+  const scopeVendorId =
+    currentUser.role === 'vendor_manager' ? currentUser.managedVendorId : undefined
+
   return useQuery({
-    queryKey: ['jobs', filters],
+    queryKey: ['jobs', filters, scopeVendorId],
     queryFn: () =>
       getJobs({
         data: {
@@ -14,6 +21,7 @@ export function useJobsQuery() {
           vendorId: filters.vendorId,
           dateFrom: filters.dateFrom,
           dateTo: filters.dateTo,
+          scopeVendorId,
           page: filters.page,
           pageSize: 10,
         },
@@ -24,10 +32,15 @@ export function useJobsQuery() {
 }
 
 export function useJobDetailQuery(jobId: number) {
+  const currentUser = useSessionStore((s) => s.currentUser)
+  const scopeVendorId =
+    currentUser.role === 'vendor_manager' ? currentUser.managedVendorId : undefined
+
   return useQuery({
-    queryKey: ['job', jobId],
-    queryFn: () => getJobById({ data: { id: jobId } }),
+    queryKey: ['job', jobId, scopeVendorId],
+    queryFn: () => getJobById({ data: { id: jobId, scopeVendorId } }),
     staleTime: 20_000,
+    retry: false, // Don't retry 403s
   })
 }
 

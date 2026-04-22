@@ -99,6 +99,7 @@ function JobDetailPage() {
   }
 
   if (isError || !job) {
+    const is403 = (isError as unknown as { cause?: { status?: number } })?.cause?.status === 403
     return (
       <main className="page-wrap px-4 py-12">
         <div
@@ -106,17 +107,23 @@ function JobDetailPage() {
           className="island-shell flex flex-col items-center gap-4 rounded-2xl p-10 text-center"
         >
           <AlertCircle size={36} className="text-[var(--sea-ink-soft)]" aria-hidden="true" />
-          <p className="m-0 text-lg font-semibold text-[var(--sea-ink)]">Job not found</p>
+          <p className="m-0 text-lg font-semibold text-[var(--sea-ink)]">
+            {is403 ? 'Access denied' : 'Job not found'}
+          </p>
           <p className="m-0 text-sm text-[var(--sea-ink-soft)]">
-            This job may have been removed or the ID is invalid.
+            {is403
+              ? "You don't have permission to view this job."
+              : 'This job may have been removed or the ID is invalid.'}
           </p>
           <div className="flex gap-2">
-            <button
-              onClick={() => refetch()}
-              className="text-sm text-[var(--lagoon-deep)] underline"
-            >
-              Try again
-            </button>
+            {!is403 && (
+              <button
+                onClick={() => refetch()}
+                className="text-sm text-[var(--lagoon-deep)] underline"
+              >
+                Try again
+              </button>
+            )}
             <Link to="/jobs" className="text-sm text-[var(--lagoon-deep)] underline">
               Back to dashboard
             </Link>

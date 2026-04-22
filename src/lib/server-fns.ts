@@ -32,6 +32,8 @@ export const getJobs = createServerFn({ method: 'GET' })
       vendorId: z.number().optional(),
       dateFrom: z.string().optional(),
       dateTo: z.string().optional(),
+      /** Hard scope — vendor managers only see jobs for their vendor */
+      scopeVendorId: z.number().optional(),
       page: z.number().default(1),
       pageSize: z.number().default(10),
     }),
@@ -40,6 +42,11 @@ export const getJobs = createServerFn({ method: 'GET' })
     await new Promise((r) => setTimeout(r, 300))
 
     let filtered = [...MOCK_JOBS]
+
+    // Hard scope applied first — cannot be overridden by other filters
+    if (data.scopeVendorId) {
+      filtered = filtered.filter((j) => j.assignedVendorId === data.scopeVendorId)
+    }
 
     if (data.status && data.status !== 'all') {
       filtered = filtered.filter((j) => j.status === data.status)
@@ -75,12 +82,20 @@ export const getJobs = createServerFn({ method: 'GET' })
   })
 
 export const getJobById = createServerFn({ method: 'GET' })
-  .inputValidator(z.object({ id: z.number() }))
+  .inputValidator(z.object({
+    id: z.number(),
+    scopeVendorId: z.number().optional(),
+  }))
   .handler(async ({ data }) => {
     await new Promise((r) => setTimeout(r, 200))
 
     const job = MOCK_JOBS.find((j) => j.id === data.id)
     if (!job) throw new Error('Job not found', { cause: { status: 404 } })
+
+    // Vendor manager scope check — reject access to jobs outside their vendor
+    if (data.scopeVendorId && job.assignedVendorId !== data.scopeVendorId) {
+      throw new Error('Access denied', { cause: { status: 403 } })
+    }
 
     const vendor = job.assignedVendorId
       ? (MOCK_VENDORS.find((v) => v.id === job.assignedVendorId) ?? null)
